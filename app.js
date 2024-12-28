@@ -23,8 +23,8 @@ app.use(express.json());
 //routes
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/users", require("./routes/usersRoute"));
-app.use("/api/rapports", require("./routes/rapportRoute"));
+app.use("/api/rapports", require("./routes/rapportRoutes"));
 
 //running the server
-const PORT= process.env.PORT || 5001;
+const PORT= process.env.PORT || 5000;
 app.listen(PORT,()=>console.log(`server is running in ${process.env.NODE_ENV} mode on port ${PORT}`));
