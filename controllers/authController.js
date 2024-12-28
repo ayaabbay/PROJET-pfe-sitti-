@@ -23,39 +23,62 @@ const {
  ---------------------------------*/
 
 module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
-    // Validation
-    const { error } = validateRegisterUser(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-        // pourquoi 400 bad request ( user gave bad informations)
+    try {
+        console.log('Body reçu:', req.body);
+
+        // Validation
+        const { error } = validateRegisterUser(req.body);
+        if (error) {
+            console.log('Erreur de validation:', error.details);
+            return res.status(400).json({ 
+                message: error.details[0].message,
+                details: error.details 
+            });
+        }
+
+        // Is user already exist
+        let user = await User.findOne({ email: req.body.email });
+        if (user) {
+            return res.status(400).json({ message: "Cet utilisateur existe déjà" });
+        }
+
+        // Hash the password
+        // Salt: a random string that is used to hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+        // New user and save it to db
+        user = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: hashedPassword,
+            role: req.body.role,
+            isAdmin: req.body.role === 'admin'
+        });
+
+        console.log('Utilisateur à créer:', user);
+
+        // Sauvegarder l'utilisateur
+        await user.save();
+
+        // Générer le token
+        const token = user.generateAuthToken();
+
+        // send a response to user
+        res.status(201).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            token
+        });
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        res.status(500).json({ 
+            message: "Erreur lors de l'inscription",
+            error: error.message 
+        });
     }
-
-    // Is user already exist
-    let user = await User.findOne({ email: req.body.email });
-    if (user) {
-        return res.status(400).json({ message: "user already exist" });
-    }
-
-    // Hash the password
-    // Salt: a random string that is used to hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-    // New user and save it to db
-    user = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: hashedPassword,
-        isAdmin: req.body.isAdmin,
-    });
-    await user.save();
-
-
-// @TODO  -sending email (verify account )
-
-    // send a response to user
-    res.status(201).json({ message: "you registerd successfully" });
-    // 201 created succ
 });
 
 /**-----------------------------------
@@ -66,37 +89,47 @@ module.exports.registerUserCtrl = asyncHandler(async (req, res) => {
  ---------------------------------*/
 
 module.exports.loginUserCtrl = asyncHandler(async (req, res) => {
-    // Validation
-    const { error } = validateLoginUser(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
+    try {
+        console.log('Login - Body reçu:', req.body);
+
+        // Validation
+        const { error } = validateLoginUser(req.body);
+        if (error) {
+            console.log('Login - Erreur de validation:', error.details);
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Check if user exist
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(400).json({ message: "Email ou mot de passe incorrect" });
+        }
+
+        // Check the password
+        const isPasswordMatch = await bcrypt.compare(
+            req.body.password,
+            user.password
+        );
+        if (!isPasswordMatch) {
+            return res.status(400).json({ message: "Email ou mot de passe incorrect" });
+        }
+
+        // Générer le token
+        const token = user.generateAuthToken();
+
+        // Send a response to the user
+        res.status(200).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            token
+        });
+    } catch (error) {
+        console.error('Login - Erreur:', error);
+        res.status(500).json({ 
+            message: "Erreur lors de la connexion",
+            error: error.message 
+        });
     }
-
-    // Check if user exist
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-        return res.status(400).json({ message: "invalid email or password" });
-    }
-
-    // Check the password
-    const isPasswordMatch = await bcrypt.compare(
-        req.body.password,
-        user.password
-    );
-    if (!isPasswordMatch) {
-        return res.status(400).json({ message: "invalid email or password" });
-    }
-
-    // @TODO  -sending email (verify account if not verified)
-
-    // Generate Auth Token
-    const token = user.generateAuthToken();
-    
-    // Send a response to the user
-    res.status(201).json({
-        _id: user._id,
-        isAdmin: user.isAdmin,
-       
-        token,
-    });
 });
