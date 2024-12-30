@@ -1,0 +1,84 @@
+/* Container principal */
+.crud-container {
+    width: 90%;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Titre */
+  .title {
+    text-align: center;
+    color: green;
+    margin-bottom: 20px;
+  }
+  
+  /* Barre de recherche */
+  .search-input {
+    padding: 10px;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Bouton Ajouter */
+  .add-button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    float: right;
+    margin-bottom: 10px;
+  }
+  
+  .add-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Table */
+  .professeur-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .professeur-table th,
+  .professeur-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .professeur-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+  
+  /* Actions */
+  .action-buttons button {
+    margin: 0 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    background: none;
+  }
+  
+  .view-btn {
+    color: green;
+  }
+  
+  .edit-btn {
+    color: blue;
+  }
+  
+  .delete-btn {
+    color: red;
+  }
+  
+  .action-buttons button:hover {
+    transform: scale(1.1);
+  }
+  
