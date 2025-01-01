@@ -1,0 +1,9 @@
+# Configure les fichiers de texte pour utiliser LF en interne et convertir en CRLF pour Windows
+* text=auto
+
+# Assure-toi que les fichiers de configuration de Git sont toujours LF
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.ts text eol=lf
