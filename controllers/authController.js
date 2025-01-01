@@ -8,7 +8,7 @@ const {
     User,
     validateRegisterUser,
     validateLoginUser,
-} = require("../models/User"); 
+} = require("../models/User");
 
 // asyncHandler: a middleware to handle exceptions in async functions
 //               without using try-catch blocks

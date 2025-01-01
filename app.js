@@ -29,6 +29,7 @@ app.use(cors());
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/users", require("./routes/usersRoute"));
 app.use("/api/rapports", require("./routes/rapportRoutes"));
+app.use("/api/commentaires", require("./routes/commentaireRoutes"));
 const etudiant1Routes = require('./routes/etudiant1Routes');
 app.use('/api/etudiants', etudiant1Routes);
 

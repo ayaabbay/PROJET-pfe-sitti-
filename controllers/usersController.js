@@ -1,6 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const { User, validateUpdateUser } = require("../models/User"); 
-const bcrypt =require("bcryptjs");
+const User = require("../models/user");
+const bcrypt = require("bcryptjs");
+const path = require("path");
+const fs = require("fs");
+const { validateUpdateUser } = require("../models/user");
 
 /**-----------------------------------
  * @desc Get All Users Profile
@@ -53,7 +56,6 @@ const bcrypt =require("bcryptjs");
     res.status(200).json(updatedUser);
 });
 
-
 /**-----------------------------------
  * @desc Get Users count
  * @router /api/users/count
@@ -84,4 +86,3 @@ const bcrypt =require("bcryptjs");
     res.status(200).json({message:"your profile has been deleted"});
   
 });
-
