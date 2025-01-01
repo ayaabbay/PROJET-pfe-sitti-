@@ -4,6 +4,7 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 require("dotenv").config();
+const cors = require('cors');
 
 // Connection à la base de données
 connectToDb();
@@ -17,38 +18,28 @@ if (!fs.existsSync(uploadDir)) {
 // Initialisation de l'application
 const app = express();
 
-app.use('/api/rapports', require('./routes/rapportRoutes'));
-
-
-
 // Middleware pour parser le JSON et les URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware pour gérer CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-        return res.status(200).json({});
-    }
-    next();
-});
+// Configuration CORS
+app.use(cors());
 
 // Routes
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/users", require("./routes/usersRoute"));
 app.use("/api/rapports", require("./routes/rapportRoutes"));
+const etudiant1Routes = require('./routes/etudiant1Routes');
+app.use('/api/etudiants', etudiant1Routes);
 
 // Gestion des erreurs 404
 app.use((req, res, next) => {
-    const error = new Error('Route non trouvée');
+    const error = new Error('Not found');
     error.status = 404;
     next(error);
 });
 
-// Gestionnaire d'erreurs global
+// Gestion des erreurs
 app.use((error, req, res, next) => {
     res.status(error.status || 500);
     res.json({
