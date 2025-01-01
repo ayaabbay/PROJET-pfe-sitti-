@@ -17,6 +17,9 @@ if (!fs.existsSync(uploadDir)) {
 // Initialisation de l'application
 const app = express();
 
+app.use('/api/rapports', require('./routes/rapportRoutes'));
+
+
 
 // Middleware pour parser le JSON et les URL-encoded
 app.use(express.json());

@@ -54,68 +54,35 @@ userSchema.methods.generateAuthToken = function() {
 };
 
 // Créer le modèle
-const User = mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 // Validation pour l'inscription
 const validateRegisterUser = (obj) => {
     const schema = Joi.object({
-        username: Joi.string().trim().min(2).max(100).required()
-            .messages({
-                'string.base': 'Le nom d\'utilisateur doit être une chaîne de caractères',
-                'string.empty': 'Le nom d\'utilisateur est requis',
-                'string.min': 'Le nom d\'utilisateur doit contenir au moins {#limit} caractères',
-                'string.max': 'Le nom d\'utilisateur ne peut pas dépasser {#limit} caractères'
-            }),
-        email: Joi.string().trim().min(5).max(100).required().email()
-            .messages({
-                'string.email': 'L\'email n\'est pas valide',
-                'string.empty': 'L\'email est requis'
-            }),
-        password: Joi.string().trim().min(8).required()
-            .messages({
-                'string.empty': 'Le mot de passe est requis',
-                'string.min': 'Le mot de passe doit contenir au moins {#limit} caractères'
-            }),
+        username: Joi.string().trim().min(2).max(100).required(),
+        email: Joi.string().trim().min(5).max(100).required().email(),
+        password: Joi.string().trim().min(8).required(),
         role: Joi.string().valid('etudiant', 'enseignant', 'admin').required()
-            .messages({
-                'any.only': 'Le rôle doit être soit "etudiant", "enseignant" ou "admin"',
-                'string.empty': 'Le rôle est requis'
-            })
     });
-    return schema.validate(obj, { abortEarly: false });
+    return schema.validate(obj);
 };
 
 // Validation pour la connexion
 const validateLoginUser = (obj) => {
     const schema = Joi.object({
-        email: Joi.string().trim().min(5).max(100).required().email()
-            .messages({
-                'string.email': 'L\'email n\'est pas valide',
-                'string.empty': 'L\'email est requis'
-            }),
+        email: Joi.string().trim().min(5).max(100).required().email(),
         password: Joi.string().trim().min(8).required()
-            .messages({
-                'string.empty': 'Le mot de passe est requis',
-                'string.min': 'Le mot de passe doit contenir au moins {#limit} caractères'
-            })
     });
-    return schema.validate(obj, { abortEarly: false });
+    return schema.validate(obj);
 };
 
 // Validation pour la mise à jour
 const validateUpdateUser = (obj) => {
     const schema = Joi.object({
         username: Joi.string().trim().min(2).max(100),
-        email: Joi.string().trim().min(5).max(100).email(),
-        password: Joi.string().trim().min(8),
-        role: Joi.string().valid('etudiant', 'enseignant', 'admin')
+        password: Joi.string().trim().min(8)
     });
-    return schema.validate(obj, { abortEarly: false });
+    return schema.validate(obj);
 };
 
-module.exports = {
-    User,
-    validateRegisterUser,
-    validateLoginUser,
-    validateUpdateUser
-};
+module.exports = User;
