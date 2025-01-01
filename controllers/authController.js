@@ -4,7 +4,7 @@
 // Import necessary modules
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
-const User = require("../models/user");
+const User = require('../models/user');
 
 // asyncHandler: a middleware to handle exceptions in async functions
 //               without using try-catch blocks
