@@ -40,6 +40,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", require("./routes/authRoute"));
 app.use("/api/users", require("./routes/usersRoute"));
 app.use("/api/rapports", require("./routes/rapportRoutes"));
+app.use("/api/commentaires", require("./routes/commentaireRoutes"));
 
 // Gestion des erreurs 404
 app.use((req, res, next) => {
