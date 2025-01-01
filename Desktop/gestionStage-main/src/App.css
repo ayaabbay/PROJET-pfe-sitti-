@@ -1,0 +1,87 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.welcome-content {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  width: 220px;
+  background: #f8f9fa;
+  height: 100vh;
+  padding: 20px;
+  box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  color: #417546;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.create-btn {
+  background: #0084ff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu li {
+  list-style: none;
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.main-content {
+  padding: 30px;
+  flex: 1;
+  background: #ffffff;
+}
+
+.stats, .details {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.details {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  text-align: center;
+}
+
+.details div {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 150px;
+}
+
+.details h3 {
+  color: #0056b3;
+  margin: 0;
+  font-size: 24px;
+}
+
+.details p {
+  margin: 10px 0 0;
+  color: #6c757d;
+}
+
+h1, p {
+  margin: 0 0 10px 0;
+}
