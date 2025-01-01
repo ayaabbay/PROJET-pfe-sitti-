@@ -1,20 +1,15 @@
+const { User } = require('../models/User');
 const Rapport = require('../models/rapportModel');
-const Etudiant = require('../models/etudiantModel');
-const Enseignant = require('../models/enseignantModel');
-const User = require('../models/user');
 const fs = require('fs');
 const path = require('path');
 
-// Soumettre un rapport (étudiant vers enseignant)
+// Soumettre un rapport (étudiant)
 exports.soumettreRapport = async (req, res) => {
     try {
-        // Vérifier si l'étudiant existe et a un encadrant
-        const etudiant = await Etudiant.findOne({ email: req.user.email }).populate('encadrant');
+        // Vérifier si l'étudiant existe
+        const etudiant = await User.findById(req.user._id);
         if (!etudiant) {
             return res.status(404).json({ message: 'Étudiant non trouvé' });
-        }
-        if (!etudiant.encadrant) {
-            return res.status(400).json({ message: 'Aucun enseignant encadrant assigné' });
         }
 
         if (!req.file) {
@@ -31,13 +26,8 @@ exports.soumettreRapport = async (req, res) => {
 
         await newRapport.save();
 
-        // Mettre à jour l'enseignant avec le nouveau rapport
-        const enseignant = await Enseignant.findById(etudiant.encadrant);
-        enseignant.rapports.push(newRapport._id);
-        await enseignant.save();
-
         res.status(200).json({ 
-            message: 'Rapport soumis avec succès à votre encadrant',
+            message: 'Rapport soumis avec succès',
             rapport: newRapport
         });
 
@@ -50,69 +40,11 @@ exports.soumettreRapport = async (req, res) => {
     }
 };
 
-// Récupérer les rapports à corriger (enseignant)
-exports.getRapportsACorrection = async (req, res) => {
+// Récupérer les rapports soumis (enseignant)
+exports.getRapports = async (req, res) => {
     try {
-        // Trouver l'enseignant
-        const enseignant = await Enseignant.findOne({ email: req.user.email })
-            .populate({
-                path: 'rapports',
-                populate: {
-                    path: 'etudiant',
-                    select: 'nom prenom email'
-                }
-            });
-
-        if (!enseignant) {
-            return res.status(404).json({ message: 'Enseignant non trouvé' });
-        }
-
-        // Filtrer les rapports non corrigés
-        const rapportsACorrection = enseignant.rapports.filter(rapport => !rapport.corrige);
-
-        res.json({
-            message: 'Liste des rapports à corriger',
-            rapports: rapportsACorrection
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Corriger et renvoyer un rapport (enseignant)
-exports.corrigerRapport = async (req, res) => {
-    try {
-        const rapport = await Rapport.findById(req.params.id).populate('etudiant');
-        if (!rapport) {
-            return res.status(404).json({ message: 'Rapport non trouvé' });
-        }
-
-        // Vérifier si l'enseignant est bien l'encadrant de l'étudiant
-        const enseignant = await Enseignant.findOne({ email: req.user.email });
-        if (!enseignant || !enseignant.rapports.includes(rapport._id)) {
-            return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à corriger ce rapport' });
-        }
-
-        // Mettre à jour le rapport avec la correction
-        rapport.observation = req.body.observation;
-        rapport.corrige = true;
-        rapport.dateCorrection = new Date();
-
-        // Si un nouveau fichier corrigé est fourni
-        if (req.file) {
-            // Supprimer l'ancien fichier s'il existe
-            if (rapport.fichierCorrige) {
-                fs.unlinkSync(rapport.fichierCorrige);
-            }
-            rapport.fichierCorrige = req.file.path;
-        }
-
-        await rapport.save();
-
-        res.json({ 
-            message: 'Rapport corrigé avec succès', 
-            rapport 
-        });
+        const rapports = await Rapport.find().populate('etudiant', 'username email');
+        res.json(rapports);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -126,12 +58,83 @@ exports.telechargerRapport = async (req, res) => {
             return res.status(404).json({ message: 'Rapport non trouvé' });
         }
 
-        const filePath = req.query.type === 'corrige' ? rapport.fichierCorrige : rapport.fichier;
-        if (!filePath || !fs.existsSync(filePath)) {
+        const filePath = rapport.fichier;
+        if (!fs.existsSync(filePath)) {
             return res.status(404).json({ message: 'Fichier non trouvé' });
         }
 
         res.download(filePath, rapport.nom);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Corriger un rapport
+exports.corrigerRapport = async (req, res) => {
+    try {
+        const rapport = await Rapport.findById(req.params.id);
+        if (!rapport) {
+            return res.status(404).json({ message: 'Rapport non trouvé' });
+        }
+
+        rapport.observation = req.body.observation;
+        rapport.corrige = req.body.corrige;
+        rapport.dateCorrection = new Date();
+
+        await rapport.save();
+
+        res.json({ message: 'Rapport corrigé avec succès', rapport });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Obtenir mes rapports (pour l'étudiant)
+exports.getMesRapports = async (req, res) => {
+    try {
+        const rapports = await Rapport.find({ etudiant: req.user._id });
+        res.json(rapports);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Obtenir les statistiques (pour l'enseignant)
+exports.getStatistiques = async (req, res) => {
+    try {
+        const stats = await Rapport.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalRapports: { $sum: 1 },
+                    rapportsCorriges: {
+                        $sum: { $cond: [{ $eq: ['$corrige', true] }, 1, 0] }
+                    },
+                    rapportsEnAttente: {
+                        $sum: { $cond: [{ $eq: ['$corrige', false] }, 1, 0] }
+                    }
+                }
+            }
+        ]);
+
+        res.json({
+            totalRapports: stats[0]?.totalRapports || 0,
+            rapportsCorriges: stats[0]?.rapportsCorriges || 0,
+            rapportsEnAttente: stats[0]?.rapportsEnAttente || 0
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Obtenir l'historique des rapports d'un étudiant
+exports.getHistoriqueEtudiant = async (req, res) => {
+    try {
+        const rapports = await Rapport.find({ etudiant: req.params.etudiantId })
+            .sort({ dateSoumission: -1 })
+            .populate('etudiant', 'username email');
+            
+        res.json(rapports);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
